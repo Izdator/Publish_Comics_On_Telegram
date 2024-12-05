@@ -1,20 +1,15 @@
-import requests
 import os
 import random
-from telegram import Bot
+import requests
 from dotenv import load_dotenv
-
-load_dotenv()
-
-TOKEN = os.getenv("TOKEN_TELEGRAM")
-CHAT_ID = os.getenv("CHAT_ID_TELEGRAM")
+from telegram import Bot
 
 folder_name = "xkcd_images"
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
 
 
-def send_random_comic():
+def send_random_comic(token, chat_id):
+    img_name = None
+
     try:
         count_url = "https://xkcd.com/info.0.json"
         response = requests.get(count_url)
@@ -39,23 +34,31 @@ def send_random_comic():
         with open(img_name, 'wb') as img_file:
             img_file.write(img_response.content)
 
-        print(f"Картинка сохранена в {img_name}")
+        print(f"Сохранен комикс: {img_name}")
         print(f"Название комикса: {comic_title}")
 
-        bot = Bot(TOKEN)
-
-        bot.send_message(chat_id=CHAT_ID, text=f"Комикс: {comic_title}\n{comic_alt}")
+        bot = Bot(token)
+        bot.send_message(chat_id=chat_id, text=f"Comic: {comic_title}\n{comic_alt}")
 
         with open(img_name, 'rb') as file:
-            bot.send_document(chat_id=CHAT_ID, document=file)
-
-        os.remove(img_name)
+            bot.send_document(chat_id=chat_id, document=file)
 
     except requests.exceptions.RequestException as e:
-        print(f"Ошибка при выполнении HTTP-запроса: {e}")
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        print(f"Error during HTTP request: {e}")
+
+    finally:
+        if img_name and os.path.exists(img_name):
+            os.remove(img_name)
+
+
+def main():
+    load_dotenv()
+    token = os.environ["TOKEN_TELEGRAM"]
+    chat_id = os.environ["CHAT_ID_TELEGRAM"]
+    send_random_comic(token, chat_id)
 
 
 if __name__ == "__main__":
-    send_random_comic()
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    main()
