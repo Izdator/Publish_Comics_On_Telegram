@@ -20,3 +20,7 @@
 .idea/
 /Thumbs.db/
 /.DS_Store/
+.local/share/virtualenv
+env/
+venv/
+.replit
